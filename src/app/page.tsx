@@ -1,65 +1,94 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import {
+  IndianRupee,
+  TrendingDown,
+  Package,
+  AlertTriangle,
+  Trash2,
+} from "lucide-react";
+import { AppShell } from "@/components/layout/app-shell";
+import { KPICard } from "@/components/dashboard/kpi-card";
+import { AlertsPanel } from "@/components/dashboard/alerts-panel";
+import { AreaChart } from "@/components/charts/area-chart";
+import { BarChart } from "@/components/charts/bar-chart";
+import { useAppStore } from "@/store/use-app-store";
+import {
+  getDashboardKPIs,
+  getAlerts,
+  getLossTrend,
+  getWastageTrend,
+  getTopMissingProducts,
+} from "@/lib/data/service";
+
+export default function DashboardPage() {
+  const { selectedOutletId } = useAppStore();
+  const outletId = selectedOutletId ?? undefined;
+  const kpis = getDashboardKPIs(outletId);
+  const alerts = getAlerts(outletId);
+  const lossTrend = getLossTrend(outletId);
+  const wastageTrend = getWastageTrend(outletId);
+  const topMissing = getTopMissingProducts(outletId);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <AppShell
+      title="Owner Dashboard"
+      description="Inventory visibility, loss tracking, and accountability overview"
+    >
+      <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <KPICard title="Inventory Value" value={kpis.inventoryValue} icon={Package} change={2.4} />
+          <KPICard title="Today's Sales" value={kpis.todaysSales} icon={IndianRupee} change={8.1} />
+          <KPICard
+            title="Inventory Variance"
+            value={kpis.inventoryVariance}
+            format="number"
+            icon={TrendingDown}
+            variant="warning"
+            change={-12.3}
+          />
+          <KPICard
+            title="Estimated Losses"
+            value={kpis.estimatedLosses}
+            icon={AlertTriangle}
+            variant="danger"
+            change={-18.7}
+          />
+          <KPICard
+            title="Wastage Cost"
+            value={kpis.wastageCost}
+            icon={Trash2}
+            variant="warning"
+            change={5.2}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <AreaChart
+                title="Inventory Loss Trend"
+                data={lossTrend}
+                color="hsl(var(--destructive))"
+              />
+              <AreaChart
+                title="Wastage Trend"
+                data={wastageTrend}
+                color="hsl(var(--chart-4))"
+              />
+            </div>
+            <BarChart
+              title="Top Missing Products"
+              data={topMissing.map((p) => ({
+                name: p.name.length > 15 ? p.name.slice(0, 15) + "…" : p.name,
+                value: p.lossValue,
+                variance: p.variance,
+              }))}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+          <AlertsPanel alerts={alerts} />
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 }

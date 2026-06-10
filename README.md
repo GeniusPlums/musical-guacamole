@@ -1,36 +1,72 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BarIQ — Inventory Intelligence Platform
 
-## Getting Started
+> **Where did my inventory go?**
 
-First, run the development server:
+BarIQ solves inventory leakage, auditability, and accountability for bars and pubs. It is **not** a POS replacement — it is an inventory intelligence layer that sits alongside your existing billing and menu systems.
+
+## Features
+
+- **Owner Dashboard** — KPIs, loss trends, wastage trends, top missing products, alerts
+- **Inventory Module** — 200+ SKUs across Beer, Whiskey, Vodka, Rum, Gin, Kitchen Ingredients
+- **Stock Movement Ledger** — Immutable event timeline (received, sale, wastage, adjustment, transfer, closing count)
+- **Variance Engine** — Expected vs actual stock with loss value calculation
+- **Variance Investigation** — Detective dashboard with timeline, staff accountability, AI insights
+- **Audit Center** — Weekly reports with top missing products, shift/employee variance
+- **Kitchen Wastage** — Purchased/used/spoiled/unaccounted tracking
+- **Multi-Outlet View** — Compare 2 outlets side by side
+
+## Tech Stack
+
+- Next.js 15+ (App Router)
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui components
+- PostgreSQL + Prisma ORM
+- Recharts
+- Zustand
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The MVP runs with **in-memory mock data** — no database required for the demo.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Database Setup (Optional)
 
-## Learn More
+```bash
+docker compose up -d
+cp .env.example .env
+npx prisma db push
+npm run db:seed
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Demo Narrative
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Receive inventory → Stock Ledger shows +12 Cases of Black Dog
+2. Process sales → Sale events logged with employee attribution
+3. Record wastage → Broken bottle during Saturday night shift
+4. Conduct stock count → Closing count reveals discrepancy
+5. Detect variance → Variance Engine flags 15 bottles missing
+6. Investigate → Click Black Dog → see timeline, staff, AI insights
+7. Generate audit report → Audit Center shows weekly loss breakdown
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/              # Next.js pages
+├── components/       # UI components
+├── lib/
+│   ├── data/         # Data service layer
+│   ├── mock-data/    # Mock data generator
+│   └── variance-engine.ts
+├── store/            # Zustand state
+prisma/
+├── schema.prisma     # PostgreSQL schema
+└── seed.ts           # Database seed script
+```

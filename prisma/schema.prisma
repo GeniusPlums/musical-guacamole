@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Outlet {
+  id        String   @id @default(cuid())
+  name      String
+  location  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  employees     Employee[]
+  inventory     InventoryItem[]
+  stockEvents   StockEvent[]
+  alerts        Alert[]
+  auditReports  AuditReport[]
+}
+
+model Employee {
+  id           String   @id @default(cuid())
+  name         String
+  role         String
+  employeeCode String   @unique
+  outletId     String
+  outlet       Outlet   @relation(fields: [outletId], references: [id])
+  createdAt    DateTime @default(now())
+
+  stockEvents StockEvent[]
+}
+
+enum InventoryCategory {
+  Beer
+  Whiskey
+  Vodka
+  Rum
+  Gin
+  KitchenIngredients
+}
+
+model InventoryItem {
+  id               String            @id @default(cuid())
+  name             String
+  category         InventoryCategory
+  sku              String            @unique
+  costPrice        Float
+  sellingPrice     Float
+  currentStock     Float
+  reorderThreshold Float
+  unit             String
+  outletId         String
+  outlet           Outlet            @relation(fields: [outletId], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  stockEvents StockEvent[]
+}
+
+enum EventType {
+  STOCK_RECEIVED
+  SALE
+  WASTAGE
+  MANUAL_ADJUSTMENT
+  TRANSFER
+  CLOSING_COUNT
+}
+
+model StockEvent {
+  id              String        @id @default(cuid())
+  type            EventType
+  quantity        Float
+  unit            String
+  reference       String?
+  notes           String?
+  shift           String
+  timestamp       DateTime
+  inventoryItemId String
+  employeeId      String
+  outletId        String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  outlet          Outlet        @relation(fields: [outletId], references: [id])
+  createdAt       DateTime      @default(now())
+
+  @@index([outletId, timestamp])
+  @@index([inventoryItemId, timestamp])
+}
+
+enum AlertSeverity {
+  critical
+  warning
+  info
+}
+
+model Alert {
+  id              String        @id @default(cuid())
+  severity        AlertSeverity
+  message         String
+  timestamp       DateTime
+  outletId        String
+  inventoryItemId String?
+  outlet          Outlet        @relation(fields: [outletId], references: [id])
+}
+
+model KitchenWastage {
+  id           String   @id @default(cuid())
+  name         String
+  purchased    Float
+  used         Float
+  spoiled      Float
+  unaccounted  Float
+  unit         String
+  costPerUnit  Float
+  outletId     String
+  createdAt    DateTime @default(now())
+}
+
+model AuditReport {
+  id                       String   @id @default(cuid())
+  weekStart                DateTime
+  weekEnd                  DateTime
+  inventoryLoss            Float
+  topMissingProducts       Json
+  highestVarianceShift     String
+  highestVarianceEmployee  Json
+  outletComparison         Json?
+  outletId                 String
+  outlet                   Outlet   @relation(fields: [outletId], references: [id])
+  createdAt                DateTime @default(now())
+}

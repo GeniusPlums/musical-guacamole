@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bariq-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: bariq
+      POSTGRES_PASSWORD: bariq_dev
+      POSTGRES_DB: bariq
+    ports:
+      - "5432:5432"
+    volumes:
+      - bariq_pgdata:/var/lib/postgresql/data
+
+volumes:
+  bariq_pgdata:

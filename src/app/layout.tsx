@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ThemeInitializer } from "@/components/providers/theme-initializer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,17 +18,25 @@ export const metadata: Metadata = {
   description: "Where did my inventory go? Traceability, accountability, and loss prevention for bars and pubs.",
 };
 
+const themeScript = `(function(){try{var t=localStorage.getItem("bariq-theme");if(t==="light"){document.documentElement.classList.remove("dark")}else{document.documentElement.classList.add("dark")}}catch(e){document.documentElement.classList.add("dark")}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`dark ${geistSans.variable} ${geistMono.variable} h-full`}
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full antialiased">
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          {children}
-        </ThemeProvider>
+        <ThemeInitializer />
+        {children}
       </body>
     </html>
   );

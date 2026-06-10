@@ -1,8 +1,8 @@
 "use client";
 
 import { Moon, Sun, Bell } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
+import { useThemeStore } from "@/store/use-theme-store";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -16,7 +16,8 @@ import { useAppStore } from "@/store/use-app-store";
 import { getOutlets } from "@/lib/data/service";
 
 export function Header({ title, description }: { title: string; description?: string }) {
-  const { theme, setTheme } = useTheme();
+  const theme = useThemeStore((s) => s.theme);
+  const toggleTheme = useThemeStore((s) => s.toggleTheme);
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
@@ -74,7 +75,7 @@ export function Header({ title, description }: { title: string; description?: st
             variant="ghost"
             size="icon"
             className="h-8 w-8"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={toggleTheme}
           >
             {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </Button>

@@ -1,29 +1,32 @@
-# BarIQ — Inventory Intelligence Platform
+# BarIQ — Interactive Inventory Intelligence Demo
 
-> **Where did my inventory go?**
+> **When inventory goes missing, the system tells you where to investigate.**
 
-BarIQ solves inventory leakage, auditability, and accountability for bars and pubs. It is **not** a POS replacement — it is an inventory intelligence layer that sits alongside your existing billing and menu systems.
+Fully interactive in-browser simulation for bars and pubs. No database, no auth — all state persists in **localStorage**.
 
-## Features
+## Demo Flow
 
-- **Owner Dashboard** — KPIs, loss trends, wastage trends, top missing products, alerts
-- **Inventory Module** — 200+ SKUs across Beer, Whiskey, Vodka, Rum, Gin, Kitchen Ingredients
-- **Stock Movement Ledger** — Immutable event timeline (received, sale, wastage, adjustment, transfer, closing count)
-- **Variance Engine** — Expected vs actual stock with loss value calculation
-- **Variance Investigation** — Detective dashboard with timeline, staff accountability, AI insights
-- **Audit Center** — Weekly reports with top missing products, shift/employee variance
-- **Kitchen Wastage** — Purchased/used/spoiled/unaccounted tracking
-- **Multi-Outlet View** — Compare 2 outlets side by side
+1. **Command Center** — Quick actions change metrics instantly
+2. **Receive stock** — Live Inventory or Receive Delivery
+3. **Run Service** — Simulate POS sales (beer, whiskey, cocktails)
+4. **Create leakage** — Simulate theft, kitchen waste, unauthorized adjustments
+5. **Stock Count** — Submit physical count → variance → auto investigation
+6. **Investigation Center** — Timeline, staff, AI-style deterministic analysis
+7. **Audit Center** — Generate reports, export to PDF
 
-## Tech Stack
+## Routes
 
-- Next.js 15+ (App Router)
-- TypeScript
-- Tailwind CSS v4
-- shadcn/ui components
-- PostgreSQL + Prisma ORM
-- Recharts
-- Zustand
+| Page | Path | Purpose |
+|------|------|---------|
+| Command Center | `/` | KPIs, quick actions, live activity feed |
+| Live Inventory | `/inventory` | Editable SKUs, receive/adjust/wastage |
+| Run Service | `/service` | POS sale simulator |
+| Stock Count | `/stock-count` | Closing counts with variance detection |
+| Investigations | `/investigations` | Open discrepancy cases |
+| Demo Scenarios | `/scenarios` | One-click prebuilt stories |
+| Stock Ledger | `/ledger` | Immutable event timeline |
+| Variance | `/variance` | Expected vs actual engine |
+| Audit Center | `/audit` | Weekly reports + PDF export |
 
 ## Quick Start
 
@@ -32,41 +35,10 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Use **Reset Demo** in the sidebar to restore seeded data.
 
-The MVP runs with **in-memory mock data** — no database required for the demo.
+## Tech Stack
 
-## Database Setup (Optional)
-
-```bash
-docker compose up -d
-cp .env.example .env
-npx prisma db push
-npm run db:seed
-```
-
-## Demo Narrative
-
-1. Receive inventory → Stock Ledger shows +12 Cases of Black Dog
-2. Process sales → Sale events logged with employee attribution
-3. Record wastage → Broken bottle during Saturday night shift
-4. Conduct stock count → Closing count reveals discrepancy
-5. Detect variance → Variance Engine flags 15 bottles missing
-6. Investigate → Click Black Dog → see timeline, staff, AI insights
-7. Generate audit report → Audit Center shows weekly loss breakdown
-
-## Project Structure
-
-```
-src/
-├── app/              # Next.js pages
-├── components/       # UI components
-├── lib/
-│   ├── data/         # Data service layer
-│   ├── mock-data/    # Mock data generator
-│   └── variance-engine.ts
-├── store/            # Zustand state
-prisma/
-├── schema.prisma     # PostgreSQL schema
-└── seed.ts           # Database seed script
-```
+- Next.js App Router + TypeScript + Tailwind
+- Zustand + localStorage persistence
+- shadcn/ui + Recharts

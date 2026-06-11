@@ -3,34 +3,45 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  LayoutDashboard,
+  Terminal,
   Package,
+  ShoppingCart,
+  ClipboardCheck,
+  Search,
   ScrollText,
   Scale,
   FileSearch,
   ChefHat,
   Building2,
+  Play,
   ChevronLeft,
   ChevronRight,
   ScanSearch,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
+import { useSimulationStore } from "@/store/use-simulation-store";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/inventory", label: "Inventory", icon: Package },
+  { href: "/", label: "Command Center", icon: Terminal },
+  { href: "/inventory", label: "Live Inventory", icon: Package },
+  { href: "/service", label: "Run Service", icon: ShoppingCart },
+  { href: "/stock-count", label: "Stock Count", icon: ClipboardCheck },
+  { href: "/investigations", label: "Investigations", icon: Search, badge: true },
   { href: "/ledger", label: "Stock Ledger", icon: ScrollText },
   { href: "/variance", label: "Variance", icon: Scale },
   { href: "/audit", label: "Audit Center", icon: FileSearch },
   { href: "/kitchen", label: "Kitchen Wastage", icon: ChefHat },
   { href: "/outlets", label: "Multi-Outlet", icon: Building2 },
+  { href: "/scenarios", label: "Demo Scenarios", icon: Play },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
+  const openCases = useSimulationStore((s) => s.getOpenInvestigations().length);
 
   return (
     <aside
@@ -46,14 +57,16 @@ export function Sidebar() {
         {!sidebarCollapsed && (
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold tracking-tight">BarIQ</p>
-            <p className="truncate text-[10px] text-muted-foreground">Inventory Intelligence</p>
+            <p className="truncate text-[10px] text-muted-foreground">Interactive Demo</p>
           </div>
         )}
       </div>
 
-      <nav className="flex-1 space-y-1 p-2">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-2">
         {navItems.map((item) => {
-          const active = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+          const active =
+            pathname === item.href ||
+            (item.href !== "/" && pathname.startsWith(item.href));
           const Icon = item.icon;
           return (
             <Link
@@ -68,19 +81,33 @@ export function Sidebar() {
               title={sidebarCollapsed ? item.label : undefined}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {!sidebarCollapsed && <span>{item.label}</span>}
+              {!sidebarCollapsed && (
+                <>
+                  <span className="flex-1">{item.label}</span>
+                  {item.badge && openCases > 0 && (
+                    <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
+                      {openCases}
+                    </Badge>
+                  )}
+                </>
+              )}
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t border-border p-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-center"
-          onClick={toggleSidebar}
-        >
+      <div className="border-t border-border p-2 space-y-1">
+        {!sidebarCollapsed && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-xs"
+            onClick={() => useSimulationStore.getState().resetSimulation()}
+          >
+            Reset Demo
+          </Button>
+        )}
+        <Button variant="ghost" size="sm" className="w-full justify-center" onClick={toggleSidebar}>
           {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>

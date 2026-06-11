@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/store/use-app-store";
-import { getEvents } from "@/lib/data/service";
+import { useSimulationStore } from "@/store/use-simulation-store";
 import type { EventType } from "@/lib/types";
 
 const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
@@ -27,36 +27,26 @@ const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
 ];
 
 export default function LedgerPage() {
-  const { selectedOutletId } = useAppStore();
+  const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
   const [eventType, setEventType] = useState<string>("all");
+  const data = useSimulationStore((s) => s.data);
+  const getEvents = useSimulationStore((s) => s.getEvents);
 
-  let events = getEvents({
-    outletId: selectedOutletId ?? undefined,
-    limit: 100,
-  });
+  let events = getEvents({ outletId, limit: 100 });
+  if (eventType !== "all") events = events.filter((e) => e.type === eventType);
 
-  if (eventType !== "all") {
-    events = events.filter((e) => e.type === eventType);
-  }
-
+  const allEvents = getEvents({ outletId });
   const eventCounts = EVENT_TYPES.slice(1).map((t) => ({
     type: t.label,
-    count: getEvents({ outletId: selectedOutletId ?? undefined }).filter(
-      (e) => e.type === t.value
-    ).length,
+    count: allEvents.filter((e) => e.type === t.value).length,
   }));
 
   return (
-    <AppShell
-      title="Stock Movement Ledger"
-      description="Immutable audit trail of every inventory action"
-    >
+    <AppShell title="Stock Movement Ledger" description="Immutable audit trail — updates live as you operate">
       <div className="space-y-6">
         <div className="flex flex-wrap items-center gap-3">
           <Select value={eventType} onValueChange={setEventType}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
+            <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {EVENT_TYPES.map((t) => (
                 <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
@@ -78,11 +68,9 @@ export default function LedgerPage() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-medium">Timeline</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle className="text-sm font-medium">Timeline</CardTitle></CardHeader>
           <CardContent>
-            <EventTimeline events={events} />
+            <EventTimeline events={events} employees={data.employees} inventory={data.inventory} />
           </CardContent>
         </Card>
       </div>

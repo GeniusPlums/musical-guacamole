@@ -1,92 +1,81 @@
 "use client";
 
-import {
-  IndianRupee,
-  TrendingDown,
-  Package,
-  AlertTriangle,
-  Trash2,
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, AlertTriangle } from "lucide-react";
 import { AppShell } from "@/components/layout/app-shell";
-import { KPICard } from "@/components/dashboard/kpi-card";
+import { KPIStrip } from "@/components/simulation/kpi-strip";
+import { QuickActions } from "@/components/simulation/quick-actions";
+import { ActivityFeed } from "@/components/simulation/activity-feed";
 import { AlertsPanel } from "@/components/dashboard/alerts-panel";
 import { AreaChart } from "@/components/charts/area-chart";
-import { BarChart } from "@/components/charts/bar-chart";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/store/use-app-store";
-import {
-  getDashboardKPIs,
-  getAlerts,
-  getLossTrend,
-  getWastageTrend,
-  getTopMissingProducts,
-} from "@/lib/data/service";
+import { useSimulationStore } from "@/store/use-simulation-store";
 
-export default function DashboardPage() {
-  const { selectedOutletId } = useAppStore();
-  const outletId = selectedOutletId ?? undefined;
-  const kpis = getDashboardKPIs(outletId);
-  const alerts = getAlerts(outletId);
-  const lossTrend = getLossTrend(outletId);
-  const wastageTrend = getWastageTrend(outletId);
-  const topMissing = getTopMissingProducts(outletId);
+export default function CommandCenterPage() {
+  const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
+  const alerts = useSimulationStore((s) =>
+    outletId ? s.data.alerts.filter((a) => a.outletId === outletId) : s.data.alerts
+  );
+  const lossTrend = useSimulationStore((s) => s.getLossTrend(outletId));
+  const openCases = useSimulationStore((s) => s.getOpenInvestigations(outletId));
 
   return (
     <AppShell
-      title="Owner Dashboard"
-      description="Inventory visibility, loss tracking, and accountability overview"
+      title="Command Center"
+      description="Operate the bar simulation — every action updates inventory, variance, and accountability"
     >
       <div className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <KPICard title="Inventory Value" value={kpis.inventoryValue} icon={Package} change={2.4} />
-          <KPICard title="Today's Sales" value={kpis.todaysSales} icon={IndianRupee} change={8.1} />
-          <KPICard
-            title="Inventory Variance"
-            value={kpis.inventoryVariance}
-            format="number"
-            icon={TrendingDown}
-            variant="warning"
-            change={-12.3}
-          />
-          <KPICard
-            title="Estimated Losses"
-            value={kpis.estimatedLosses}
-            icon={AlertTriangle}
-            variant="danger"
-            change={-18.7}
-          />
-          <KPICard
-            title="Wastage Cost"
-            value={kpis.wastageCost}
-            icon={Trash2}
-            variant="warning"
-            change={5.2}
-          />
-        </div>
+        <KPIStrip />
+
+        <QuickActions />
 
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <AreaChart
-                title="Inventory Loss Trend"
-                data={lossTrend}
-                color="hsl(var(--destructive))"
-              />
-              <AreaChart
-                title="Wastage Trend"
-                data={wastageTrend}
-                color="hsl(var(--chart-4))"
-              />
-            </div>
-            <BarChart
-              title="Top Missing Products"
-              data={topMissing.map((p) => ({
-                name: p.name.length > 15 ? p.name.slice(0, 15) + "…" : p.name,
-                value: p.lossValue,
-                variance: p.variance,
-              }))}
+            <AreaChart
+              title="Inventory Loss Trend"
+              data={lossTrend}
+              color="hsl(var(--destructive))"
             />
+
+            {openCases.length > 0 && (
+              <Card className="border-destructive/30">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive" />
+                    Open Investigations
+                    <Badge variant="destructive">{openCases.length}</Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {openCases.slice(0, 4).map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between rounded-lg border border-border p-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{c.itemName}</p>
+                        <p className="text-xs text-muted-foreground">{c.mostLikelyCause}</p>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link href={`/investigations/${c.id}`}>
+                          Investigate
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </Link>
+                      </Button>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
           </div>
-          <AlertsPanel alerts={alerts} />
+
+          <div className="space-y-4">
+            <ActivityFeed />
+            <AlertsPanel alerts={alerts} />
+          </div>
         </div>
       </div>
     </AppShell>

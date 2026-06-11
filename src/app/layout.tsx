@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeInitializer } from "@/components/providers/theme-initializer";
+import { SimulationHydrator } from "@/components/providers/simulation-hydrator";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full antialiased">
         <ThemeInitializer />
+        <SimulationHydrator />
         {children}
       </body>
     </html>

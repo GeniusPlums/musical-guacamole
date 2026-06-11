@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/store/use-app-store";
-import { getOutlets } from "@/lib/data/service";
+import { useSimulationStore } from "@/store/use-simulation-store";
 
 export function Header({ title, description }: { title: string; description?: string }) {
   const theme = useThemeStore((s) => s.theme);
@@ -24,7 +24,10 @@ export function Header({ title, description }: { title: string; description?: st
     () => false
   );
   const { selectedOutletId, setSelectedOutlet, role, setRole } = useAppStore();
-  const outlets = getOutlets();
+  const outlets = useSimulationStore((s) => s.data.outlets);
+  const alertCount = useSimulationStore((s) =>
+    s.data.alerts.filter((a) => a.severity === "critical").length
+  );
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
@@ -65,9 +68,11 @@ export function Header({ title, description }: { title: string; description?: st
 
         <Button variant="ghost" size="icon" className="relative h-8 w-8">
           <Bell className="h-4 w-4" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
-            3
-          </span>
+          {alertCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+              {alertCount}
+            </span>
+          )}
         </Button>
 
         {mounted && (

@@ -62,6 +62,7 @@ export interface StockEvent {
   shift: ShiftName;
   timestamp: Date;
   notes?: string;
+  suspicious?: boolean;
 }
 
 export interface VarianceRecord {
@@ -152,4 +153,60 @@ export interface AppData {
   kitchenWastage: KitchenWastageItem[];
   auditReports: AuditReport[];
   aiInsights: AIInsight[];
+}
+
+export type InvestigationTrigger =
+  | "stock_count"
+  | "anomaly"
+  | "audit"
+  | "adjustment";
+
+export interface InvestigationCase {
+  id: string;
+  outletId: string;
+  inventoryItemId: string;
+  itemName: string;
+  status: "open" | "resolved";
+  expectedStock: number;
+  actualStock: number;
+  variance: number;
+  lossValue: number;
+  unit: string;
+  createdAt: Date;
+  trigger: InvestigationTrigger;
+  mostLikelyCause: string;
+  analysis: AIInsight[];
+  responsibleEmployeeIds: string[];
+}
+
+export type ActivityType =
+  | "sale"
+  | "receive"
+  | "wastage"
+  | "adjustment"
+  | "theft"
+  | "stock_count"
+  | "audit"
+  | "scenario"
+  | "alert"
+  | "investigation";
+
+export interface ActivityFeedItem {
+  id: string;
+  type: ActivityType;
+  message: string;
+  timestamp: Date;
+  severity?: "critical" | "warning" | "info";
+  outletId?: string;
+  inventoryItemId?: string;
+}
+
+export interface SimulationSnapshot {
+  data: AppData;
+  openingStocks: Record<string, number>;
+  investigations: InvestigationCase[];
+  activityFeed: ActivityFeedItem[];
+  nextEventId: number;
+  nextAlertId: number;
+  nextInvestigationId: number;
 }

@@ -9,9 +9,8 @@ import {
   ClipboardCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import type { StockEvent } from "@/lib/types";
+import type { Employee, InventoryItem, StockEvent } from "@/lib/types";
 import { formatTime } from "@/lib/utils";
-import { getEmployee, getInventoryItem } from "@/lib/data/service";
 
 const eventConfig = {
   STOCK_RECEIVED: { icon: Package, label: "Stock Received", color: "text-emerald-500" },
@@ -22,15 +21,23 @@ const eventConfig = {
   CLOSING_COUNT: { icon: ClipboardCheck, label: "Closing Count", color: "text-muted-foreground" },
 };
 
-export function EventTimeline({ events }: { events: StockEvent[] }) {
+export function EventTimeline({
+  events,
+  employees,
+  inventory,
+}: {
+  events: StockEvent[];
+  employees: Employee[];
+  inventory: InventoryItem[];
+}) {
   return (
     <div className="relative space-y-0">
       <div className="absolute left-[19px] top-2 bottom-2 w-px bg-border" />
       {events.map((event) => {
         const config = eventConfig[event.type];
         const Icon = config.icon;
-        const employee = getEmployee(event.employeeId);
-        const item = getInventoryItem(event.inventoryItemId);
+        const employee = employees.find((e) => e.id === event.employeeId);
+        const item = inventory.find((i) => i.id === event.inventoryItemId);
         const isPositive = event.quantity > 0;
 
         return (
@@ -41,13 +48,16 @@ export function EventTimeline({ events }: { events: StockEvent[] }) {
             <div className="min-w-0 flex-1 pt-1">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <p className="text-sm font-medium">{config.label}</p>
+                  <p className="text-sm font-medium">
+                    {config.label}
+                    {event.suspicious && (
+                      <Badge variant="destructive" className="ml-2 text-[10px]">Suspicious</Badge>
+                    )}
+                  </p>
                   {event.reference && (
                     <p className="text-xs text-muted-foreground">{event.reference}</p>
                   )}
-                  {item && (
-                    <p className="text-xs text-muted-foreground">{item.name}</p>
-                  )}
+                  {item && <p className="text-xs text-muted-foreground">{item.name}</p>}
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">{formatTime(event.timestamp)}</p>
@@ -55,13 +65,11 @@ export function EventTimeline({ events }: { events: StockEvent[] }) {
                     <p className={`text-sm font-semibold tabular-nums ${isPositive ? "text-emerald-500" : "text-destructive"}`}>
                       {isPositive ? (
                         <span className="inline-flex items-center gap-0.5">
-                          <ArrowUpRight className="h-3 w-3" />
-                          +{event.quantity}
+                          <ArrowUpRight className="h-3 w-3" />+{event.quantity}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-0.5">
-                          <ArrowDownLeft className="h-3 w-3" />
-                          {event.quantity}
+                          <ArrowDownLeft className="h-3 w-3" />{event.quantity}
                         </span>
                       )}{" "}
                       {event.unit}
@@ -70,9 +78,7 @@ export function EventTimeline({ events }: { events: StockEvent[] }) {
                 </div>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge variant="outline" className="text-[10px]">
-                  {event.shift}
-                </Badge>
+                <Badge variant="outline" className="text-[10px]">{event.shift}</Badge>
                 {employee && (
                   <Badge variant="secondary" className="text-[10px]">
                     {employee.name} ({employee.employeeCode})

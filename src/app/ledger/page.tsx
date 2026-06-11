@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/app-shell";
 import { EventTimeline } from "@/components/ledger/event-timeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/store/use-app-store";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationData, useSimulationEvents } from "@/hooks/use-simulation";
 import type { EventType } from "@/lib/types";
 
 const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
@@ -29,13 +29,15 @@ const EVENT_TYPES: { value: EventType | "all"; label: string }[] = [
 export default function LedgerPage() {
   const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
   const [eventType, setEventType] = useState<string>("all");
-  const data = useSimulationStore((s) => s.data);
-  const getEvents = useSimulationStore((s) => s.getEvents);
+  const data = useSimulationData();
+  const allEvents = useSimulationEvents({ outletId });
 
-  let events = getEvents({ outletId, limit: 100 });
-  if (eventType !== "all") events = events.filter((e) => e.type === eventType);
+  const events = useMemo(() => {
+    let list = allEvents.slice(0, 100);
+    if (eventType !== "all") list = list.filter((e) => e.type === eventType);
+    return list;
+  }, [allEvents, eventType]);
 
-  const allEvents = getEvents({ outletId });
   const eventCounts = EVENT_TYPES.slice(1).map((t) => ({
     type: t.label,
     count: allEvents.filter((e) => e.type === t.value).length,
@@ -48,9 +50,7 @@ export default function LedgerPage() {
           <Select value={eventType} onValueChange={setEventType}>
             <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {EVENT_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-              ))}
+              {EVENT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Badge variant="secondary">{events.length} events shown</Badge>

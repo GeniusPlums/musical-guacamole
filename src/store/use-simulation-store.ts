@@ -6,6 +6,7 @@ import { generateMockData, getOpeningStocks } from "@/lib/mock-data/generator";
 import { generateInvestigationAnalysis } from "@/lib/analysis/investigator";
 import { generateAuditReportForOutlet } from "@/lib/audit/generator";
 import { computeAllVariances, computeVarianceFromEvents } from "@/lib/variance-engine";
+import { isValidSimulationState, reviveSimulationState } from "@/lib/storage/revive-dates";
 import type {
   ActivityFeedItem,
   AppData,
@@ -18,7 +19,7 @@ import type {
   VarianceRecord,
 } from "@/lib/types";
 
-const STORAGE_KEY = "bariq-simulation-v1";
+const STORAGE_KEY = "bariq-simulation-v2";
 
 function createInitialSnapshot() {
   const data = generateMockData();
@@ -50,6 +51,11 @@ function getCurrentShift(): ShiftName {
 
 function pickRandom<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function toEventTime(value: Date | string): number {
+  if (value instanceof Date) return value.getTime();
+  return new Date(value).getTime();
 }
 
 interface SimulationStore {
@@ -127,6 +133,7 @@ export const useSimulationStore = create<SimulationStore>()(
       resetSimulation: () => {
         const fresh = createInitialSnapshot();
         set({ ...fresh, hydrated: true });
+        void useSimulationStore.persist.clearStorage();
       },
 
       getActiveOutletId: (override) => {
@@ -141,7 +148,7 @@ export const useSimulationStore = create<SimulationStore>()(
 
       getEvents: (filters) => {
         let events = [...get().data.events].sort(
-          (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+          (a, b) => toEventTime(b.timestamp) - toEventTime(a.timestamp)
         );
         if (filters?.outletId) events = events.filter((e) => e.outletId === filters.outletId);
         if (filters?.inventoryItemId)
@@ -272,7 +279,7 @@ export const useSimulationStore = create<SimulationStore>()(
       getOpenInvestigations: (outletId) => {
         let list = get().investigations.filter((i) => i.status === "open");
         if (outletId) list = list.filter((i) => i.outletId === outletId);
-        return list.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+        return list.sort((a, b) => toEventTime(b.createdAt) - toEventTime(a.createdAt));
       },
 
       pushActivity: (item) => {
@@ -867,8 +874,26 @@ export const useSimulationStore = create<SimulationStore>()(
         nextAlertId: state.nextAlertId,
         nextInvestigationId: state.nextInvestigationId,
       }),
+      merge: (persisted, current) => {
+        const revived = reviveSimulationState(
+          persisted as Partial<typeof current>
+        );
+        if (!isValidSimulationState(revived)) {
+          return { ...current, ...createInitialSnapshot(), hydrated: true };
+        }
+        return { ...current, ...revived };
+      },
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (state) {
+          if (!isValidSimulationState(state)) {
+            const fresh = createInitialSnapshot();
+            Object.assign(state, fresh);
+          } else {
+            const revived = reviveSimulationState(state);
+            Object.assign(state, revived);
+          }
+          state.setHydrated(true);
+        }
       },
     }
   )

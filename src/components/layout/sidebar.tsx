@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSyncExternalStore } from "react";
 import {
   Terminal,
   Package,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/use-app-store";
+import { useOpenInvestigations } from "@/hooks/use-simulation";
 import { useSimulationStore } from "@/store/use-simulation-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +43,12 @@ const navItems = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar } = useAppStore();
-  const openCases = useSimulationStore((s) => s.getOpenInvestigations().length);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
+  const openCases = useOpenInvestigations().length;
 
   return (
     <aside
@@ -84,7 +91,7 @@ export function Sidebar() {
               {!sidebarCollapsed && (
                 <>
                   <span className="flex-1">{item.label}</span>
-                  {item.badge && openCases > 0 && (
+                  {item.badge && mounted && openCases > 0 && (
                     <Badge variant="destructive" className="text-[10px] h-5 px-1.5">
                       {openCases}
                     </Badge>

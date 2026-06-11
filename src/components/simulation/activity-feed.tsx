@@ -3,7 +3,7 @@
 import { Activity, AlertTriangle, Package, ShoppingCart, Search, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationActivityFeed } from "@/hooks/use-simulation";
 import { formatTime } from "@/lib/utils";
 import type { ActivityType } from "@/lib/types";
 
@@ -21,7 +21,7 @@ const icons: Record<ActivityType, typeof Activity> = {
 };
 
 export function ActivityFeed({ limit = 12 }: { limit?: number }) {
-  const feed = useSimulationStore((s) => s.activityFeed).slice(0, limit);
+  const feed = useSimulationActivityFeed().slice(0, limit);
 
   return (
     <Card>

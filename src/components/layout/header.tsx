@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useAppStore } from "@/store/use-app-store";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationData, useSimulationAlerts } from "@/hooks/use-simulation";
 
 export function Header({ title, description }: { title: string; description?: string }) {
   const theme = useThemeStore((s) => s.theme);
@@ -24,10 +24,8 @@ export function Header({ title, description }: { title: string; description?: st
     () => false
   );
   const { selectedOutletId, setSelectedOutlet, role, setRole } = useAppStore();
-  const outlets = useSimulationStore((s) => s.data.outlets);
-  const alertCount = useSimulationStore((s) =>
-    s.data.alerts.filter((a) => a.severity === "critical").length
-  );
+  const outlets = useSimulationData().outlets;
+  const alertCount = useSimulationAlerts().filter((a) => a.severity === "critical").length;
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-6">
@@ -39,41 +37,51 @@ export function Header({ title, description }: { title: string; description?: st
       </div>
 
       <div className="flex items-center gap-3">
-        <Select
-          value={selectedOutletId ?? "all"}
-          onValueChange={(v) => setSelectedOutlet(v === "all" ? null : v)}
-        >
-          <SelectTrigger className="w-[180px] h-8 text-xs">
-            <SelectValue placeholder="All Outlets" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Outlets</SelectItem>
-            {outlets.map((o) => (
-              <SelectItem key={o.id} value={o.id}>
-                {o.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {mounted ? (
+          <>
+            <Select
+              value={selectedOutletId ?? "all"}
+              onValueChange={(v) => setSelectedOutlet(v === "all" ? null : v)}
+            >
+              <SelectTrigger className="w-[180px] h-8 text-xs">
+                <SelectValue placeholder="All Outlets" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Outlets</SelectItem>
+                {outlets.map((o) => (
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-        <Select value={role} onValueChange={(v) => setRole(v as "owner" | "manager")}>
-          <SelectTrigger className="w-[120px] h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="owner">Owner</SelectItem>
-            <SelectItem value="manager">Manager</SelectItem>
-          </SelectContent>
-        </Select>
+            <Select value={role} onValueChange={(v) => setRole(v as "owner" | "manager")}>
+              <SelectTrigger className="w-[120px] h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="owner">Owner</SelectItem>
+                <SelectItem value="manager">Manager</SelectItem>
+              </SelectContent>
+            </Select>
 
-        <Button variant="ghost" size="icon" className="relative h-8 w-8">
-          <Bell className="h-4 w-4" />
-          {alertCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
-              {alertCount}
-            </span>
-          )}
-        </Button>
+            <Button variant="ghost" size="icon" className="relative h-8 w-8">
+              <Bell className="h-4 w-4" />
+              {alertCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-white">
+                  {alertCount}
+                </span>
+              )}
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="h-8 w-[180px] rounded-md border border-border bg-muted/40" />
+            <div className="h-8 w-[120px] rounded-md border border-border bg-muted/40" />
+            <div className="h-8 w-8 rounded-md border border-border bg-muted/40" />
+          </>
+        )}
 
         {mounted && (
           <Button

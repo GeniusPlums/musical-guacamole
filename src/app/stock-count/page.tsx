@@ -14,27 +14,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import {
+  useSimulationInventory,
+  useSimulationItemVariance,
+  useSimulationActions,
+} from "@/hooks/use-simulation";
 import { useAppStore } from "@/store/use-app-store";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default function StockCountPage() {
   const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
-  const inventory = useSimulationStore((s) => s.getInventory(outletId));
-  const getItemVariance = useSimulationStore((s) => s.getItemVariance);
-  const performStockCount = useSimulationStore((s) => s.performStockCount);
+  const inventory = useSimulationInventory(outletId);
+  const { performStockCount } = useSimulationActions();
 
-  const [selectedId, setSelectedId] = useState(inventory[0]?.id ?? "");
+  const [selectedId, setSelectedId] = useState("");
   const [actual, setActual] = useState("");
   const [result, setResult] = useState<{ variance: number; lossValue: number } | null>(null);
 
-  const item = inventory.find((i) => i.id === selectedId);
-  const variance = selectedId ? getItemVariance(selectedId) : undefined;
+  const activeId = selectedId || inventory[0]?.id || "";
+  const item = inventory.find((i) => i.id === activeId);
+  const variance = useSimulationItemVariance(activeId);
   const expected = variance?.expectedStock ?? 0;
 
   const handleSubmit = () => {
-    if (!selectedId || actual === "") return;
-    const res = performStockCount(selectedId, Number(actual));
+    if (!activeId || actual === "") return;
+    const res = performStockCount(activeId, Number(actual));
     setResult(res);
   };
 
@@ -54,9 +58,9 @@ export default function StockCountPage() {
           <CardContent className="space-y-4">
             <div>
               <label className="text-xs font-medium text-muted-foreground">Select Product</label>
-              <Select value={selectedId} onValueChange={(v) => { setSelectedId(v); setResult(null); }}>
+              <Select value={activeId} onValueChange={(v) => { setSelectedId(v); setResult(null); }}>
                 <SelectTrigger className="mt-1">
-                  <SelectValue />
+                  <SelectValue placeholder="Select product" />
                 </SelectTrigger>
                 <SelectContent>
                   {inventory.map((i) => (
@@ -96,7 +100,7 @@ export default function StockCountPage() {
               />
             </div>
 
-            <Button className="w-full" onClick={handleSubmit} disabled={!selectedId || actual === ""}>
+            <Button className="w-full" onClick={handleSubmit} disabled={!activeId || actual === ""}>
               Submit Stock Count
             </Button>
           </CardContent>
@@ -129,11 +133,6 @@ export default function StockCountPage() {
                 {result.lossValue > 0 && (
                   <p className="text-destructive font-semibold text-xl pt-2">
                     Loss: {formatCurrency(result.lossValue)}
-                  </p>
-                )}
-                {result.variance < 0 && (
-                  <p className="text-xs text-muted-foreground pt-2">
-                    Investigation case created automatically.
                   </p>
                 )}
               </div>

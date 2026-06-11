@@ -2,13 +2,13 @@
 
 import { IndianRupee, Package, AlertTriangle, TrendingDown, Trash2 } from "lucide-react";
 import { KPICard } from "@/components/dashboard/kpi-card";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationKPIs, useOpenInvestigations } from "@/hooks/use-simulation";
 import { useAppStore } from "@/store/use-app-store";
 
 export function KPIStrip() {
   const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
-  const kpis = useSimulationStore((s) => s.getDashboardKPIs(outletId));
-  const openCases = useSimulationStore((s) => s.getOpenInvestigations(outletId).length);
+  const kpis = useSimulationKPIs(outletId);
+  const openCases = useOpenInvestigations(outletId).length;
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">

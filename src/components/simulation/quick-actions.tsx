@@ -14,19 +14,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationActions } from "@/hooks/use-simulation";
 
 export function QuickActions({ compact = false }: { compact?: boolean }) {
-  const actions = useSimulationStore((s) => ({
-    receiveDeliveryBatch: s.receiveDeliveryBatch,
-    runBusyNight: s.runBusyNight,
-    runWeekendRush: s.runWeekendRush,
-    generateRandomSales: s.generateRandomSales,
-    simulateTheft: s.simulateTheft,
-    simulateKitchenWaste: s.simulateKitchenWaste,
-    simulateUnauthorizedAdjustment: s.simulateUnauthorizedAdjustment,
-    generateAuditReport: s.generateAuditReport,
-  }));
+  const actions = useSimulationActions();
 
   const buttons = [
     { label: "Receive Delivery", icon: Truck, action: actions.receiveDeliveryBatch, variant: "default" as const },

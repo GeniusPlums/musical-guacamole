@@ -6,21 +6,21 @@ import { ActivityFeed } from "@/components/simulation/activity-feed";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationKPIs, useSimulationActions } from "@/hooks/use-simulation";
 import { useAppStore } from "@/store/use-app-store";
 import { formatCurrency } from "@/lib/utils";
 
 export default function ServicePage() {
   const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
-  const kpis = useSimulationStore((s) => s.getDashboardKPIs(outletId));
-  const store = useSimulationStore();
+  const kpis = useSimulationKPIs(outletId);
+  const actions = useSimulationActions();
 
   const saleButtons = [
-    { label: "Sell 1 Beer", icon: Beer, action: () => store.sellBeer(1) },
-    { label: "Sell 5 Beers", icon: Beer, action: () => store.sellBeer(5) },
-    { label: "Sell 1 Whiskey", icon: Wine, action: () => store.sellWhiskey() },
-    { label: "Sell 1 Cocktail", icon: Martini, action: () => store.sellCocktail() },
-    { label: "Random Customer Order", icon: Shuffle, action: () => store.sellRandomOrder() },
+    { label: "Sell 1 Beer", icon: Beer, action: () => actions.sellBeer(1) },
+    { label: "Sell 5 Beers", icon: Beer, action: () => actions.sellBeer(5) },
+    { label: "Sell 1 Whiskey", icon: Wine, action: () => actions.sellWhiskey() },
+    { label: "Sell 1 Cocktail", icon: Martini, action: () => actions.sellCocktail() },
+    { label: "Random Customer Order", icon: Shuffle, action: () => actions.sellRandomOrder() },
   ];
 
   return (
@@ -50,15 +50,15 @@ export default function ServicePage() {
               </div>
 
               <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                <Button variant="secondary" size="sm" className="gap-2" onClick={() => store.runBusyNight()}>
+                <Button variant="secondary" size="sm" className="gap-2" onClick={() => actions.runBusyNight()}>
                   <Moon className="h-4 w-4" />
                   Run Busy Night (25 sales)
                 </Button>
-                <Button variant="secondary" size="sm" className="gap-2" onClick={() => store.runWeekendRush()}>
+                <Button variant="secondary" size="sm" className="gap-2" onClick={() => actions.runWeekendRush()}>
                   <Calendar className="h-4 w-4" />
                   Weekend Rush
                 </Button>
-                <Button variant="secondary" size="sm" onClick={() => store.generateRandomSales(20)}>
+                <Button variant="secondary" size="sm" onClick={() => actions.generateRandomSales(20)}>
                   Burst: 20 Random Sales
                 </Button>
               </div>
@@ -73,21 +73,15 @@ export default function ServicePage() {
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-lg bg-muted/50 p-4 text-center">
                   <p className="text-xs text-muted-foreground">Today&apos;s Sales</p>
-                  <p className="text-xl font-semibold tabular-nums mt-1">
-                    {formatCurrency(kpis.todaysSales)}
-                  </p>
+                  <p className="text-xl font-semibold tabular-nums mt-1">{formatCurrency(kpis.todaysSales)}</p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-4 text-center">
                   <p className="text-xs text-muted-foreground">Inventory Value</p>
-                  <p className="text-xl font-semibold tabular-nums mt-1">
-                    {formatCurrency(kpis.inventoryValue)}
-                  </p>
+                  <p className="text-xl font-semibold tabular-nums mt-1">{formatCurrency(kpis.inventoryValue)}</p>
                 </div>
                 <div className="rounded-lg bg-muted/50 p-4 text-center">
                   <p className="text-xs text-muted-foreground">Est. Losses</p>
-                  <p className="text-xl font-semibold tabular-nums mt-1 text-destructive">
-                    {formatCurrency(kpis.estimatedLosses)}
-                  </p>
+                  <p className="text-xl font-semibold tabular-nums mt-1 text-destructive">{formatCurrency(kpis.estimatedLosses)}</p>
                 </div>
               </div>
             </CardContent>

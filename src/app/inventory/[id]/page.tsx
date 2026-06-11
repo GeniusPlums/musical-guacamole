@@ -8,7 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EventTimeline } from "@/components/ledger/event-timeline";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import {
+  useSimulationData,
+  useSimulationEvents,
+  useSimulationItemVariance,
+  useSimulationInvestigations,
+  useSimulationActions,
+} from "@/hooks/use-simulation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 export default function InventoryDetailPage({
@@ -17,16 +23,14 @@ export default function InventoryDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const data = useSimulationStore((s) => s.data);
+  const data = useSimulationData();
   const item = data.inventory.find((i) => i.id === id);
-  const variance = useSimulationStore((s) => s.getItemVariance(id));
-  const events = useSimulationStore((s) => s.getEvents({ inventoryItemId: id, limit: 25 }));
-  const receiveDelivery = useSimulationStore((s) => s.receiveDelivery);
-  const recordWastage = useSimulationStore((s) => s.recordWastage);
-  const manualAdjust = useSimulationStore((s) => s.manualAdjust);
-  const investigations = useSimulationStore((s) =>
-    s.investigations.filter((c) => c.inventoryItemId === id && c.status === "open")
+  const variance = useSimulationItemVariance(id);
+  const events = useSimulationEvents({ inventoryItemId: id, limit: 25 });
+  const investigations = useSimulationInvestigations().filter(
+    (c) => c.inventoryItemId === id && c.status === "open"
   );
+  const { receiveDelivery, recordWastage, manualAdjust } = useSimulationActions();
 
   if (!item || !variance) {
     return (
@@ -46,18 +50,10 @@ export default function InventoryDetailPage({
         </Button>
 
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" className="gap-1" onClick={() => receiveDelivery(id, 12)}>
-            <Package className="h-3 w-3" />Receive +12
-          </Button>
-          <Button size="sm" variant="outline" className="gap-1" onClick={() => manualAdjust(id, 5)}>
-            <Plus className="h-3 w-3" />Adjust +5
-          </Button>
-          <Button size="sm" variant="outline" className="gap-1" onClick={() => recordWastage(id, 1)}>
-            <Trash2 className="h-3 w-3" />Wastage -1
-          </Button>
-          <Button asChild size="sm" variant="secondary">
-            <Link href="/stock-count">Stock Count</Link>
-          </Button>
+          <Button size="sm" className="gap-1" onClick={() => receiveDelivery(id, 12)}><Package className="h-3 w-3" />Receive +12</Button>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => manualAdjust(id, 5)}><Plus className="h-3 w-3" />Adjust +5</Button>
+          <Button size="sm" variant="outline" className="gap-1" onClick={() => recordWastage(id, 1)}><Trash2 className="h-3 w-3" />Wastage -1</Button>
+          <Button asChild size="sm" variant="secondary"><Link href="/stock-count">Stock Count</Link></Button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-4">
@@ -68,12 +64,8 @@ export default function InventoryDetailPage({
             { label: "Loss", value: formatCurrency(variance.lossValue), danger: variance.lossValue > 0 },
           ].map((m) => (
             <Card key={m.label}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs text-muted-foreground uppercase">{m.label}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className={`text-xl font-semibold ${m.danger ? "text-destructive" : ""}`}>{m.value}</p>
-              </CardContent>
+              <CardHeader className="pb-2"><CardTitle className="text-xs text-muted-foreground uppercase">{m.label}</CardTitle></CardHeader>
+              <CardContent><p className={`text-xl font-semibold ${m.danger ? "text-destructive" : ""}`}>{m.value}</p></CardContent>
             </Card>
           ))}
         </div>
@@ -85,9 +77,7 @@ export default function InventoryDetailPage({
                 <Badge variant="destructive">Open Investigation</Badge>
                 <p className="text-sm mt-1">{investigations[0].mostLikelyCause}</p>
               </div>
-              <Button asChild size="sm">
-                <Link href={`/investigations/${investigations[0].id}`}>View Case</Link>
-              </Button>
+              <Button asChild size="sm"><Link href={`/investigations/${investigations[0].id}`}>View Case</Link></Button>
             </CardContent>
           </Card>
         )}

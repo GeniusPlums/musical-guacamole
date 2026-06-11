@@ -5,7 +5,7 @@ import { AppShell } from "@/components/layout/app-shell";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationActions } from "@/hooks/use-simulation";
 
 const scenarios = [
   {
@@ -43,7 +43,7 @@ const scenarios = [
 ];
 
 export default function ScenariosPage() {
-  const loadScenario = useSimulationStore((s) => s.loadScenario);
+  const { loadScenario } = useSimulationActions();
 
   return (
     <AppShell

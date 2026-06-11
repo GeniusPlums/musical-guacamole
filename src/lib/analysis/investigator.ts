@@ -8,6 +8,11 @@ import type {
 } from "../types";
 import { computeVarianceFromEvents } from "../variance-engine";
 
+function toTime(value: Date | string): number {
+  if (value instanceof Date) return value.getTime();
+  return new Date(value).getTime();
+}
+
 function hashString(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) h = (h << 5) - h + s.charCodeAt(i);
@@ -23,7 +28,7 @@ export function generateInvestigationAnalysis(
 ): { analysis: AIInsight[]; mostLikelyCause: string; responsibleEmployeeIds: string[] } {
   const itemEvents = events
     .filter((e) => e.inventoryItemId === item.id)
-    .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    .sort((a, b) => toTime(b.timestamp) - toTime(a.timestamp));
 
   const variance = computeVarianceFromEvents(
     item,

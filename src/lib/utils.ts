@@ -23,22 +23,28 @@ export function formatPercent(n: number): string {
   return `${n.toFixed(1)}%`;
 }
 
-export function formatDate(date: Date): string {
+function toDate(value: Date | string): Date {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? new Date() : d;
+}
+
+export function formatDate(date: Date | string): string {
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(date);
+  }).format(toDate(date));
 }
 
-export function formatTime(date: Date): string {
+export function formatTime(date: Date | string): string {
   return new Intl.DateTimeFormat("en-IN", {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
-  }).format(date);
+  }).format(toDate(date));
 }
 
-export function formatDateTime(date: Date): string {
+export function formatDateTime(date: Date | string): string {
   return `${formatDate(date)} ${formatTime(date)}`;
 }

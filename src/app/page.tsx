@@ -12,15 +12,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAppStore } from "@/store/use-app-store";
-import { useSimulationStore } from "@/store/use-simulation-store";
+import { useSimulationAlerts, useSimulationLossTrend, useOpenInvestigations } from "@/hooks/use-simulation";
 
 export default function CommandCenterPage() {
   const outletId = useAppStore((s) => s.selectedOutletId) ?? undefined;
-  const alerts = useSimulationStore((s) =>
-    outletId ? s.data.alerts.filter((a) => a.outletId === outletId) : s.data.alerts
-  );
-  const lossTrend = useSimulationStore((s) => s.getLossTrend(outletId));
-  const openCases = useSimulationStore((s) => s.getOpenInvestigations(outletId));
+  const alerts = useSimulationAlerts(outletId);
+  const lossTrend = useSimulationLossTrend(outletId);
+  const openCases = useOpenInvestigations(outletId);
 
   return (
     <AppShell
@@ -29,7 +27,6 @@ export default function CommandCenterPage() {
     >
       <div className="space-y-6">
         <KPIStrip />
-
         <QuickActions />
 
         <div className="grid gap-4 lg:grid-cols-3">
